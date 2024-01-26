@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="hu"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameLauncher.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Wumpus</a> &gt; <a href="index.source.html" class="el_package">org.example</a> &gt; <span class="el_source">GameLauncher.java</span></div><h1>GameLauncher.java</h1><pre class="source lang-java linenums">package org.example;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.Scanner;
+
+/**
+ * Launcher.
+ */
+<span class="nc" id="L10">public class GameLauncher {</span>
+<span class="nc" id="L11">    private static final Scanner scanner = new Scanner(System.in);</span>
+<span class="nc" id="L12">    private static final GamePersistenceManager persistenceManager = new GamePersistenceManager();</span>
+<span class="nc" id="L13">    static final DatabaseManager dbManager = new DatabaseManager();</span>
+
+    /**
+     * Futás.
+     *
+     * @param args feltételek
+     */
+    public static void main(String[] args) {
+
+<span class="nc" id="L22">        setupDatabase();</span>
+<span class="nc" id="L23">        String playerName = getPlayerName();</span>
+<span class="nc" id="L24">        boolean exit = false;</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        while (!exit) {</span>
+<span class="nc" id="L26">            exit = processMainMenu(playerName);</span>
+        }
+
+<span class="nc" id="L29">        scanner.close();</span>
+<span class="nc" id="L30">    }</span>
+
+    private static void setupDatabase() {
+<span class="nc" id="L33">        dbManager.createNewDatabase();</span>
+<span class="nc" id="L34">        dbManager.createTables();</span>
+<span class="nc" id="L35">    }</span>
+
+    private static String getPlayerName() {
+<span class="nc" id="L38">        System.out.println(&quot;Add meg a játékos nevét:&quot;);</span>
+<span class="nc" id="L39">        String playerName = scanner.nextLine();</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (!dbManager.playerExists(playerName)) {</span>
+<span class="nc" id="L41">            dbManager.insertPlayer(playerName, 0);</span>
+        }
+<span class="nc" id="L43">        System.out.println(&quot;Üdvözöllek a játékban, &quot; + playerName + &quot;!&quot;);</span>
+<span class="nc" id="L44">        return playerName;</span>
+    }
+
+    private static boolean processMainMenu(String playerName) {
+<span class="nc" id="L48">        printMainMenu();</span>
+<span class="nc" id="L49">        int choice = getUserInput(&quot;Válassz egy opciót:&quot;, 1, 4);</span>
+
+<span class="nc bnc" id="L51" title="All 5 branches missed.">        switch (choice) {</span>
+            case 1:
+<span class="nc" id="L53">                MapEditor mapEditor = new MapEditor();</span>
+<span class="nc" id="L54">                mapEditor.setPlayerName(playerName);</span>
+<span class="nc" id="L55">                mapEditor.setPersistenceManager(persistenceManager);</span>
+<span class="nc" id="L56">                mapEditor.runEditor();</span>
+<span class="nc" id="L57">                break;</span>
+            case 2:
+<span class="nc" id="L59">                GameBoard gameBoard = handleGameLoading();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                if (gameBoard != null) {</span>
+<span class="nc" id="L61">                    launchGame(gameBoard, playerName, persistenceManager);</span>
+                } else {
+<span class="nc" id="L63">                    System.out.println(&quot;Nem sikerült betölteni a játékot.&quot;);</span>
+                }
+<span class="nc" id="L65">                break;</span>
+
+
+            case 3:
+<span class="nc" id="L69">                printHighScores();</span>
+<span class="nc" id="L70">                break;</span>
+            case 4:
+<span class="nc" id="L72">                System.out.println(&quot;Kilépés...&quot;);</span>
+<span class="nc" id="L73">                return true;</span>
+        }
+<span class="nc" id="L75">        return false;</span>
+    }
+
+    private static void printMainMenu() {
+<span class="nc" id="L79">        System.out.println(&quot;\n--- Főmenü ---&quot;);</span>
+<span class="nc" id="L80">        System.out.println(&quot;1. Pályakészítő&quot;);</span>
+<span class="nc" id="L81">        System.out.println(&quot;2. Játék betöltése&quot;);</span>
+<span class="nc" id="L82">        System.out.println(&quot;3. Ranglista&quot;);</span>
+<span class="nc" id="L83">        System.out.println(&quot;4. Kilépés&quot;);</span>
+<span class="nc" id="L84">    }</span>
+
+    private static GameBoard handleGameLoading() {
+<span class="nc" id="L87">        File dir = new File(&quot;.&quot;); // Jelenlegi könyvtár</span>
+<span class="nc" id="L88">        FilenameFilter filter = (dir1, name) -&gt; name.endsWith(&quot;_gameState.xml&quot;);</span>
+<span class="nc" id="L89">        File[] files = dir.listFiles(filter);</span>
+
+<span class="nc bnc" id="L91" title="All 4 branches missed.">        if (files == null || files.length == 0) {</span>
+<span class="nc" id="L92">            System.out.println(&quot;Nincsenek elérhető mentések.&quot;);</span>
+<span class="nc" id="L93">            return null;</span>
+        }
+
+<span class="nc" id="L96">        System.out.println(&quot;Elérhető mentések:&quot;);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        for (int i = 0; i &lt; files.length; i++) {</span>
+
+<span class="nc" id="L99">            System.out.println((i + 1) + &quot;: &quot; + files[i].getName());</span>
+        }
+
+
+<span class="nc" id="L103">        int fileIndex = getUserInput(&quot;Válassz egy mentést a betöltéshez (szám): &quot;, 1, files.length) - 1;</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">        if (fileIndex &gt;= 0 &amp;&amp; fileIndex &lt; files.length) {</span>
+<span class="nc" id="L105">            String filename = files[fileIndex].getName();</span>
+
+<span class="nc" id="L107">            filename = filename.substring(0, filename.indexOf(&quot;_gameState.xml&quot;));</span>
+
+
+<span class="nc" id="L110">            GameBoard loadedGameBoard = persistenceManager.loadGameState(filename);</span>
+
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (loadedGameBoard != null) {</span>
+<span class="nc" id="L113">                loadedGameBoard.postLoadInitialization();</span>
+<span class="nc" id="L114">                loadedGameBoard.draw();</span>
+<span class="nc" id="L115">                System.out.println(&quot;Játék betöltve.&quot;);</span>
+            } else {
+<span class="nc" id="L117">                System.out.println(&quot;Nem sikerült betölteni a játékállapotot.&quot;);</span>
+            }
+
+<span class="nc" id="L120">            return loadedGameBoard;</span>
+        } else {
+<span class="nc" id="L122">            System.out.println(&quot;Érvénytelen fájlindex.&quot;);</span>
+<span class="nc" id="L123">            return null;</span>
+        }
+    }
+
+
+
+
+    private static void printHighScores() {
+<span class="nc" id="L131">        dbManager.printHighScores();</span>
+<span class="nc" id="L132">    }</span>
+
+    private static int getUserInput(String prompt, int min, int max) {
+        int input;
+        while (true) {
+<span class="nc" id="L137">            System.out.print(prompt);</span>
+            try {
+<span class="nc" id="L139">                input = Integer.parseInt(scanner.nextLine());</span>
+<span class="nc bnc" id="L140" title="All 4 branches missed.">                if (input &gt;= min &amp;&amp; input &lt;= max) {</span>
+<span class="nc" id="L141">                    return input;</span>
+                }
+<span class="nc" id="L143">                System.out.println(&quot;Kérlek adj meg egy számot &quot; + min + &quot; és &quot; + max + &quot; között!&quot;);</span>
+<span class="nc" id="L144">            } catch (NumberFormatException e) {</span>
+<span class="nc" id="L145">                System.out.println(&quot;Érvénytelen bemenet, kérlek adj meg egy számot!&quot;);</span>
+<span class="nc" id="L146">            }</span>
+        }
+    }
+
+    /**
+     * Indítás.
+     *
+     * @param gameBoard pálya
+     *
+     * @param playerName név
+     *
+     * @param persistenceManager kezelés
+     */
+    public static void launchGame(GameBoard gameBoard, String playerName, GamePersistenceManager persistenceManager) {
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (gameBoard == null) {</span>
+<span class="nc" id="L161">            System.out.println(&quot;Érvénytelen indítás&quot;);</span>
+<span class="nc" id="L162">            return;</span>
+        }
+
+<span class="nc" id="L165">        System.out.println(&quot;Játék indítása &quot; + playerName + &quot; számára...&quot;);</span>
+<span class="nc" id="L166">        gameBoard.draw();</span>
+<span class="nc" id="L167">        GameSession session = new GameSession(gameBoard, playerName, persistenceManager);</span>
+<span class="nc" id="L168">        session.start();</span>
+<span class="nc" id="L169">    }</span>
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
